@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 from Tkinter import *
 from matrix import Matrix
+from neural_network import predict, train_network
 
 MATRIX_SIZE = 28
 COEFFICIENT = 15
 CANVAS_SIDE = (MATRIX_SIZE - 1) * COEFFICIENT
 
+root = Tk()
+str_prediction = StringVar()
 
 class CanvasApp(Frame):
-    def __init__(self, master):
-        Frame.__init__(self, master=None)
+    def init_environment(self):
         self.x = self.y = 0
         self.canvas = Canvas(self, cursor="cross", width=CANVAS_SIDE, height=CANVAS_SIDE)
 
@@ -34,6 +36,10 @@ class CanvasApp(Frame):
 
         self.matrix = Matrix(MATRIX_SIZE, MATRIX_SIZE)
 
+    def __init__(self, master):
+        Frame.__init__(self, master=None)
+        self.init_environment()
+
     def on_button_press(self, event):
         self.prev_x = self.canvas.canvasx(event.x)
         self.prev_y = self.canvas.canvasy(event.y)
@@ -53,16 +59,22 @@ class CanvasApp(Frame):
         self.canvas.create_line(self.prev_x, self.prev_y, cur_x, cur_y)
         self.prev_x = cur_x
         self.prev_y = cur_y  # Запоминаем текущую точку
-        print (int(cur_x), int(cur_y))
         self.matrix.set_value(int(cur_y) / COEFFICIENT, int(cur_x) / COEFFICIENT, 1)
 
     def on_button_release(self, event):
         self.matrix.print_matrix()
+        str_prediction.set(predict(self.matrix.as_list()))
+
+    def clear(self):
+        self.init_environment()
+        str_prediction.set("")
 
 
 if __name__ == "__main__":
-    root = Tk()
+    train_network()
     root.resizable(width=False, height=False)
     app = CanvasApp(root)
     app.pack()
+    Button(root, text="Clear", command=app.clear).pack()
+    Label(root, textvariable=str_prediction).pack()
     root.mainloop()
